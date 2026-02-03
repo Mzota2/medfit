@@ -1,26 +1,349 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&display=swap');
 @import "tailwindcss";
 
+/* Hide scrollbar but keep scrolling functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;  /* Chrome, Safari and Opera */
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* -------------------------------------------------- */
+  /* Branding Colors - change these to customize brand */
+  /* -------------------------------------------------- */
+  --color-primary: rgb(0 123 255); /* MedFit primary blue - vibrant medical blue */
+  --color-primary-foreground: rgb(255 255 255); /* White for contrast on primary blue */
+  --color-primary-hover: rgb(0 102 217); /* Darker blue for hover state */
+  --color-primary-light: rgb(102 178 255); /* Lighter blue variant */
+  --color-primary-dark: rgb(0 86 179); /* Dark blue for emphasis */
+
+  /* Gradient (often part of brand treatment) */
+  --color-gradient-start: rgb(0 123 255); /* MedFit primary blue */
+  --color-gradient-end: rgb(0 86 179); /* MedFit dark blue */
+
+  /* -------------------------------------------------- */
+  /* Semantic Colors - can be adjusted but usually follow
+     accessibility and brand guidelines (destructive/success) */
+  /* -------------------------------------------------- */
+  --color-destructive: rgb(239 68 68); /* Red (red-500) */
+  --color-destructive-foreground: rgb(255 255 255); /* White */
+  --color-destructive-hover: rgb(220 38 38); /* Red-600 */
+
+  --color-success: rgb(34 197 94); /* Green (green-500) */
+  --color-success-foreground: rgb(255 255 255); /* White */
+  --color-success-hover: rgb(22 163 74); /* Green-600 */
+
+  --color-warning: rgb(251 191 36); /* Orange-yellow (yellow-400) */
+  --color-warning-foreground: rgb(0 0 0); /* Black */
+  --color-warning-hover: rgb(250 204 21); /* Yellow-500 */
+
+  --color-info: rgb(6 182 212); /* Bright cyan (cyan-500) */
+  --color-info-foreground: rgb(255 255 255); /* White */
+  --color-info-hover: rgb(8 145 178); /* Cyan-600 */
+
+  /* -------------------------------------------------- */
+  /* Neutral Colors - layout, background, text, borders */
+  /* -------------------------------------------------- */
+  --color-background: rgb(255 255 255); /* White */
+  --color-foreground: rgb(17 24 39); /* Dark gray (gray-900) */
+
+  /* Card Colors */
+  --color-card: rgb(255 255 255); /* White */
+  --color-card-foreground: rgb(0 0 0); /* Black */
+
+  /* Secondary Colors (neutral accents) */
+  --color-secondary: rgb(156 163 175); /* Light purple-gray (gray-400) */
+  --color-secondary-foreground: rgb(0 0 0); /* Black */
+  --color-secondary-hover: rgb(107 114 128); /* Gray-500 */
+
+  /* Border & Divider */
+  --color-border: rgb(229 231 235); /* Light gray (gray-200) */
+  --color-border-light: rgb(243 244 246); /* Gray-100 */
+  --color-border-dark: rgb(209 213 219); /* Gray-300 */
+  --color-border-strong: rgb(156 163 175); /* Gray-400 */
+  --color-border-muted: rgb(243 244 246); /* Gray-100 */
+
+  /* Text Colors */
+  --color-text-primary: rgb(17 24 39); /* Gray-900 */
+  --color-text-secondary: rgb(107 114 128); /* Gray-500 */
+  --color-text-tertiary: rgb(156 163 175); /* Gray-400 */
+  --color-text-light: rgb(75 85 99); /* Gray-600 */
+  --color-text-muted: rgb(156 163 175); /* Gray-400 */
+
+  /* Background Colors */
+  --color-background-primary: rgb(255 255 255); /* White */
+  --color-background-secondary: rgb(249 250 251); /* Gray-50 */
+  --color-background-tertiary: rgb(243 244 246); /* Gray-100 */
+  --color-background-dark: rgb(17 24 39); /* Gray-900 */
+
+  /* -------------------------------------------------- */
+  /* Shadows & Utilities */
+  /* -------------------------------------------------- */
+  --color-shadow: rgb(0 0 0 / 0.1);
+  --color-shadow-lg: rgb(0 0 0 / 0.15);
+
+  /* Typography */
+  --font-sans:  'Space Grotesk', sans-serif;
+  --font-mono: var(--font-geist-mono), 'Fira Code', 'Fira Mono', 'Consolas', 'Monaco', 'Courier New', monospace;
+ 
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Smooth theme transitions */
+* {
+  transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+
+
+
+/* Dark mode styles */
+.dark {
+  /* -------------------------------------------------- */
+  /* Branding Colors (Dark) */
+  /* -------------------------------------------------- */
+  --color-primary: rgb(0 123 255); /* MedFit primary blue */
+  --color-primary-foreground: rgb(255 255 255); /* White for contrast */
+  --color-primary-hover: rgb(102 178 255); /* Lighter blue for hover in dark mode */
+
+  /* Gradient (brand-like treatment if used) */
+  --color-gradient-start: rgb(0 123 255); /* MedFit primary blue */
+  --color-gradient-end: rgb(0 86 179); /* MedFit dark blue */
+
+  /* -------------------------------------------------- */
+  /* Semantic Colors (Dark) */
+  /* -------------------------------------------------- */
+  --color-destructive: rgb(239 68 68);
+  --color-destructive-foreground: rgb(255 255 255);
+  --color-success: rgb(34 197 94);
+  --color-warning: rgb(251 191 36);
+  --color-info: rgb(6 182 212);
+
+  /* -------------------------------------------------- */
+  /* Neutral Colors (Dark) - background, borders, text */
+  /* -------------------------------------------------- */
+  --color-background: rgb(17 24 39);
+  --color-foreground: rgb(255 255 255);
+
+  /* Card Colors */
+  --color-card: rgb(31 41 55);
+  --color-card-foreground: rgb(255 255 255);
+
+  /* Border Colors - Dark Mode */
+  --color-border: rgb(55 65 81); /* gray-700 */
+  --color-border-light: rgb(31 41 55); /* gray-800 */
+  --color-border-dark: rgb(75 85 99); /* gray-600 */
+  --color-border-strong: rgb(107 114 128); /* gray-500 */
+  --color-border-muted: rgb(17 24 39); /* gray-900 */
+
+  /* Secondary Colors (neutral accents) */
+  --color-secondary: rgb(75 85 99);
+  --color-secondary-foreground: rgb(255 255 255);
+
+  /* Text Colors */
+  --color-text-primary: rgb(255 255 255);
+  --color-text-secondary: rgb(209 213 219);
+  --color-text-tertiary: rgb(156 163 175);
+  --color-text-light: rgb(209 213 219);
+  --color-text-muted: rgb(107 114 128);
+
+  /* Background Colors */
+  --color-background-primary: rgb(17 24 39);
+  --color-background-secondary: rgb(31 41 55);
+  --color-background-tertiary: rgb(55 65 81);
+  --color-background-dark: rgb(12 19 31);
+
+  /* -------------------------------------------------- */
+  /* Shadows */
+  /* -------------------------------------------------- */
+  --color-shadow: rgb(0 0 0 / 0.3);
+  --color-shadow-lg: rgb(0 0 0 / 0.4);
+}
+/* Tailwind v4 @theme directive - maps CSS variables to Tailwind theme */
+/* stylelint-disable-next-line at-rule-no-unknown */
+@theme {
+  /* Colors */
+  --color-background: var(--color-background);
+  --color-foreground: var(--color-foreground);
+  --color-card: var(--color-card);
+  --color-card-foreground: var(--color-card-foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-foreground: var(--color-primary-foreground);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-secondary: var(--color-secondary);
+  --color-secondary-foreground: var(--color-secondary-foreground);
+  --color-secondary-hover: var(--color-secondary-hover);
+  --color-destructive: var(--color-destructive);
+  --color-destructive-foreground: var(--color-destructive-foreground);
+  --color-destructive-hover: var(--color-destructive-hover);
+  --color-success: var(--color-success);
+  --color-success-foreground: var(--color-success-foreground);
+  --color-success-hover: var(--color-success-hover);
+  --color-warning: var(--color-warning);
+  --color-warning-foreground: var(--color-warning-foreground);
+  --color-warning-hover: var(--color-warning-hover);
+  --color-info: var(--color-info);
+  --color-info-foreground: var(--color-info-foreground);
+  --color-info-hover: var(--color-info-hover);
+  --color-border: var(--color-border);
+  --color-border-light: var(--color-border-light);
+  --color-border-dark: var(--color-border-dark);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-tertiary: var(--color-text-tertiary);
+  --color-text-light: var(--color-text-light);
+  --color-text-muted: var(--color-text-muted);
+  --color-background-secondary: var(--color-background-secondary);
+  --color-background-tertiary: var(--color-background-tertiary);
+  --color-background-dark:var(--color-background-dark);
+  
+  /* Typography */
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+ 
+}
+
+
+/* Base Styles */
+* {
+  @apply border-border;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  @apply bg-background text-foreground;
+  font-family:var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-normal);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+
+/* Typography Utilities */
+h1, h2, h3, h4, h5, h6 {
+  @apply font-semibold text-foreground;
+  line-height: var(--line-height-tight);
+}
+
+h1 {
+  @apply text-2xl md:text-3xl;
+}
+
+h2 {
+  @apply text-base md:text-lg;
+}
+
+h3 {
+  @apply text-sm md:text-base;
+}
+
+h4 {
+  @apply text-xs md:text-sm;
+}
+
+h5 {
+  @apply text-xs;
+}
+
+h6 {
+  @apply text-xs;
+}
+
+/* Link Styles */
+a {
+  @apply text-text-primary hover:text-primary transition-colors;
+}
+
+/* Focus Styles */
+:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2;
+}
+
+/* Scrollbar Styles */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-border-dark rounded-full;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-text-tertiary;
+}
+
+/* For Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color:transparent transparent;
+}
+/* For Edge and IE */
+* {
+  -ms-overflow-style: -ms-autohiding-scrollbar;
+}
+
+/* Utility Classes */
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+  
+  .text-gradient {
+    background: linear-gradient(to right, rgb(var(--color-primary)), rgb(var(--color-primary-light)));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+/* Animations */
+@keyframes scaleIn {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.5s ease-out;
+}
+
+/* Ensure Google reCAPTCHA badge is visible above other fixed UI elements */
+.grecaptcha-badge {
+  position: fixed !important;
+  bottom: 12px !important;
+  right: 12px !important;
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+  transform: none !important;
+}
+.grecaptcha-badge iframe {
+  z-index: 99999 !important;
+  pointer-events: auto !important;
+}
+
+/* On very small screens, nudge the badge up slightly to avoid overlapping action buttons */
+@media (max-width: 480px) {
+  .grecaptcha-badge {
+    bottom: 64px !important; /* leave space for floating action buttons */
+  }
 }
