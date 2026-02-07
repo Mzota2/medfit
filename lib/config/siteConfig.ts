@@ -20,11 +20,11 @@ export const SITE_CONFIG: SiteConfig = {
   appDescription:
     process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Your trusted online shopping destination for quality products and services',
   brandImageUrl:
-    process.env.NEXT_PUBLIC_BRAND_IMAGE_URL || 'https://medfit.vercel.app/logo.png',
-  defaultBusinessName: process.env.NEXT_PUBLIC_DEFAULT_BUSINESS_NAME || 'Our Business',
+    process.env.NEXT_PUBLIC_BRAND_IMAGE_URL || 'https://medfit-five.vercel.app/logo.png',
+  defaultBusinessName: process.env.NEXT_PUBLIC_DEFAULT_BUSINESS_NAME || 'MedFit',
   defaultContactEmail: process.env.NEXT_PUBLIC_DEFAULT_CONTACT_EMAIL || 'hie@medfit.techcure.tech',
   defaultContactPhone: process.env.NEXT_PUBLIC_DEFAULT_CONTACT_PHONE || '+265 981 819 389',
-  appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://medfit.vercel.app',
+  appUrl: process.env.NEXT_PUBLIC_APP_URL || 'https://medfit-five.vercel.app',
   developerSupportEmail: process.env.NEXT_PUBLIC_DEVELOPER_SUPPORT_EMAIL || 'support@techcure.tech',
   developerSupportName: process.env.NEXT_PUBLIC_DEVELOPER_SUPPORT_NAME || 'TechCure Support',
   developerSupportPhone: process.env.NEXT_PUBLIC_DEVELOPER_SUPPORT_PHONE || '+265 981 819 389',
