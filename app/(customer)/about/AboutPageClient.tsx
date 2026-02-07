@@ -8,7 +8,7 @@ import { useTeam } from '@/hooks';
 import { useApp } from '@/contexts/AppContext';
 import { UserRole } from '@/types/user';
 import { ReviewsSection } from '@/components/reviews';
-
+import { SITE_CONFIG } from '@/lib/config/siteConfig';
 export default function AboutPageClient() {
   const { currentBusiness } = useApp();
   const { data: teamMembers = [], isLoading: teamLoading } = useTeam({
@@ -97,7 +97,7 @@ export default function AboutPageClient() {
                 About eShopCure
               </h1>
               <p className="text-lg text-foreground mb-8">
-                eShopCure is a leading innovator in business technology, dedicated to providing scalable and intelligent solutions that drive efficiency, foster collaboration, and unlock growth for enterprises worldwide. Our commitment to excellence is at the heart of everything we do.
+                {currentBusiness?.description || SITE_CONFIG.appDescription} 
               </p>
               <div className="flex flex-col sm:flex-row gap-4 sm:gap-4">
                 <Link href="/contact">
