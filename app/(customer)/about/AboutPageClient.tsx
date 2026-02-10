@@ -18,24 +18,39 @@ export default function AboutPageClient() {
 
   const coreValues = [
     {
-      icon: '💡',
-      title: 'Innovation',
-      description: 'Continuously pushing boundaries to develop groundbreaking solutions that redefine industry standards.',
+      icon: '⭐',
+      title: 'Quality',
+      description: 'Delivering superior medical products and healthcare services that meet the highest standards of excellence and safety.',
+    },
+    {
+      icon: '🏆',
+      title: 'Excellence',
+      description: 'Striving for the highest quality in healthcare solutions, always exceeding patient expectations and clinical standards.',
+    },
+    {
+      icon: '👥',
+      title: 'Customer Focus',
+      description: 'Prioritizing patient health and wellness, building lasting relationships through personalized care and dedicated support.',
     },
     {
       icon: '🛡️',
       title: 'Integrity',
-      description: 'Operating with unwavering honesty, transparency, and ethical conduct in all our engagements.',
+      description: 'Operating with unwavering honesty, transparency, and ethical conduct in all healthcare decisions and patient interactions.',
     },
     {
-      icon: '⚙️',
-      title: 'Excellence',
-      description: 'Striving for the highest quality in products and services, always exceeding expectations.',
+      icon: '💡',
+      title: 'Innovation',
+      description: 'Continuously advancing medical fitness solutions with cutting-edge technology and evidence-based healthcare practices.',
     },
     {
-      icon: '✓',
-      title: 'Customer Focus',
-      description: 'Prioritizing client needs and success, building lasting partnerships through dedicated support.',
+      icon: '🔒',
+      title: 'Reliability',
+      description: 'Being dependable and consistent in delivering safe, effective medical products and healthcare services.',
+    },
+    {
+      icon: '🎯',
+      title: 'Professionalism',
+      description: 'Maintaining the highest standards of medical expertise, patient care, and ethical healthcare practices.',
     },
   ];
 

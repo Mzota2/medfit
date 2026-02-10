@@ -18,7 +18,7 @@ export interface SiteConfig {
 export const SITE_CONFIG: SiteConfig = {
   appTitle: process.env.NEXT_PUBLIC_APP_TITLE || 'MedFit',
   appDescription:
-    process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Your trusted online shopping destination for quality products and services',
+    process.env.NEXT_PUBLIC_APP_DESCRIPTION || 'Your trusted online destination for high-quality medical products and equipment. From stylish, durable scrubs to essential healthcare tools, we provide students and professionals with reliable, comfortable, and innovative solutions that help you perform at your best.',
   brandImageUrl:
     process.env.NEXT_PUBLIC_BRAND_IMAGE_URL || 'https://medfit-five.vercel.app/logo.png',
   defaultBusinessName: process.env.NEXT_PUBLIC_DEFAULT_BUSINESS_NAME || 'MedFit',
