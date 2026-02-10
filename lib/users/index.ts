@@ -174,7 +174,7 @@ export const createUser = async (input: CreateUserInput, businessId?: string): P
   }
   const userData: Omit<User, 'id'> = {
     ...input,
-    businessId: finalBusinessId,
+    ...(finalBusinessId && { businessId: finalBusinessId }),
     createdAt: serverTimestamp() as unknown as Timestamp,
     updatedAt: serverTimestamp() as unknown as Timestamp,
     isActive: true,
