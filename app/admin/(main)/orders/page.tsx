@@ -472,7 +472,8 @@ function AdminOrdersPageContent() {
                 {selectedOrder.items.map((item, idx) => (
                   <div key={idx} className="flex justify-between gap-2">
                     <span className="text-foreground wrap-break-word flex-1">
-                      {item.productName} (×{item.quantity})
+                      {item.productName} (×{item.quantity}
+                      {item.selectedSize && `, Size: ${item.selectedSize}`})
                     </span>
                     <span className="text-foreground shrink-0">
                       {formatCurrency(item.subtotal, selectedOrder.pricing.currency)}

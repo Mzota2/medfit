@@ -51,6 +51,7 @@ function ProductDetailPageContent() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
+  const [selectedSize, setSelectedSize] = useState<string>('');
 
   useEffect(() => {
     if (slug) {
@@ -82,14 +83,35 @@ function ProductDetailPageContent() {
     }));
   };
 
-  // Check if product is already in cart
-  const isInCart = product ? items.some(item => item.product.id === product.id) : false;
+  // Check if product is already in cart (considering size if applicable)
+  const isInCart = product ? items.some(item => {
+    if (item.product.id !== product.id) return false;
+    if (product.sizes && product.sizes.length > 0) {
+      return item.selectedSize === selectedSize;
+    }
+    return true;
+  }) : false;
 
   const handleAddToCart = () => {
     if (product) {
-      addItem(product, quantity, selectedVariants);
+      // Validate size selection if product has sizes
+      if (product.sizes && product.sizes.length > 0 && !selectedSize) {
+        toast.showError("Size Required", "Please select a size before adding to cart");
+        return;
+      }
+      
+      // Check if selected size has available inventory
+      if (product.sizes && product.sizes.length > 0 && selectedSize) {
+        const sizeData = product.sizes.find(s => s.size === selectedSize);
+        if (!sizeData || sizeData.available < quantity) {
+          toast.showError("Insufficient Stock", `Only ${sizeData?.available || 0} available in size ${selectedSize}`);
+          return;
+        }
+      }
+      
+      addItem(product, quantity, selectedVariants, selectedSize || undefined);
       setIsAdded(true);
-      toast.showSuccess("Cart", `Successfully added ${product.name} to cart`);
+      toast.showSuccess("Cart", `Successfully added ${product.name}${selectedSize ? ` (Size: ${selectedSize})` : ''} to cart`);
       
       // Reset the added state after 2 seconds
       setTimeout(() => {
@@ -99,8 +121,18 @@ function ProductDetailPageContent() {
   };
 
   const incrementQuantity = () => {
-    if (product && product.inventory && quantity < product.inventory.available) {
-      setQuantity((prev) => prev + 1);
+    if (product) {
+      let maxQuantity = product.inventory?.available || 0;
+      
+      // If product has sizes and a size is selected, use size availability
+      if (product.sizes && product.sizes.length > 0 && selectedSize) {
+        const sizeData = product.sizes.find(s => s.size === selectedSize);
+        maxQuantity = sizeData?.available || 0;
+      }
+      
+      if (quantity < maxQuantity) {
+        setQuantity((prev) => prev + 1);
+      }
     }
   };
 
@@ -238,7 +270,18 @@ function ProductDetailPageContent() {
               {product.status === 'active' && product.inventory && product.inventory.available > 0 && (
                 <Badge variant="success">New Condition</Badge>
               )}
-              {product.inventory && product.inventory.available > 0 ? (
+              {product.sizes && product.sizes.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => (
+                    <Badge 
+                      key={size.size} 
+                      variant={size.available > 0 ? 'success' : 'danger'}
+                    >
+                      {size.size}: {size.available} left
+                    </Badge>
+                  ))}
+                </div>
+              ) : product.inventory && product.inventory.available > 0 ? (
                 <Badge variant="success">In Stock ({product.inventory.available}+ available)</Badge>
               ) : (
                 <Badge variant="danger">Out of Stock</Badge>
@@ -306,6 +349,59 @@ function ProductDetailPageContent() {
               </div>
             )}
 
+            {/* Sizes */}
+            {product.sizes && product.sizes.length > 0 && (
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  Size <span className="text-destructive">*</span>
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {product.sizes.map((size) => {
+                    const isAvailable = size.available > 0;
+                    const isSelected = selectedSize === size.size;
+                    return (
+                      <button
+                        key={size.size}
+                        type="button"
+                        onClick={() => {
+                          if (isAvailable) {
+                            setSelectedSize(size.size);
+                            // Reset quantity if it exceeds available stock for selected size
+                            if (quantity > size.available) {
+                              setQuantity(size.available);
+                            }
+                          }
+                        }}
+                        disabled={!isAvailable}
+                        className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                          isSelected
+                            ? 'border-primary bg-primary/10 text-primary'
+                            : isAvailable
+                            ? 'border-border hover:border-primary text-foreground'
+                            : 'border-border opacity-50 cursor-not-allowed text-text-secondary'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <span>{size.size}</span>
+                          {isAvailable && (
+                            <span className="text-xs text-text-secondary">
+                              ({size.available} left)
+                            </span>
+                          )}
+                          {!isAvailable && (
+                            <span className="text-xs text-destructive">(Out of stock)</span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+                {!selectedSize && (
+                  <p className="text-xs text-destructive mt-2">Please select a size</p>
+                )}
+              </div>
+            )}
+
             {/* Variants */}
             {product.variants && product.variants.length > 0 && (
               <div className="mb-6 space-y-4">
@@ -361,17 +457,36 @@ function ProductDetailPageContent() {
                   value={quantity}
                   onChange={(e) => {
                     const val = parseInt(e.target.value) || 1;
-                    if (product.inventory && val >= 1 && val <= product.inventory.available) {
+                    let maxQuantity = product.inventory?.available || 1;
+                    
+                    // If product has sizes and a size is selected, use size availability
+                    if (product.sizes && product.sizes.length > 0 && selectedSize) {
+                      const sizeData = product.sizes.find(s => s.size === selectedSize);
+                      maxQuantity = sizeData?.available || 0;
+                    }
+                    
+                    if (val >= 1 && val <= maxQuantity) {
                       setQuantity(val);
                     }
                   }}
                   min={1}
-                  max={product.inventory?.available || 1}
+                  max={
+                    product.sizes && product.sizes.length > 0 && selectedSize
+                      ? product.sizes.find(s => s.size === selectedSize)?.available || 0
+                      : product.inventory?.available || 1
+                  }
                   className="w-20 text-center px-4 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary bg-background text-foreground"
                 />
                 <button
                   onClick={incrementQuantity}
-                  disabled={!product.inventory || quantity >= product.inventory.available}
+                  disabled={
+                    !product.inventory || 
+                    quantity >= (
+                      product.sizes && product.sizes.length > 0 && selectedSize
+                        ? product.sizes.find(s => s.size === selectedSize)?.available || 0
+                        : product.inventory.available
+                    )
+                  }
                   className="w-10 h-10 rounded-lg border border-border flex items-center justify-center hover:bg-background-secondary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -391,6 +506,7 @@ function ProductDetailPageContent() {
                   product.status !== 'active' || 
                   !product.inventory || 
                   product.inventory.available === 0 ||
+                  (product.sizes && product.sizes.length > 0 && !selectedSize) ||
                   isInCart || 
                   isAdded
                 }
@@ -398,11 +514,13 @@ function ProductDetailPageContent() {
               >
                 {!product.inventory || product.inventory.available === 0 
                   ? 'Out of Stock' 
-                  : isAdded 
-                    ? '✓ Added to Cart' 
-                    : isInCart 
-                      ? '✓ In Cart' 
-                      : 'Add to Cart'}
+                  : product.sizes && product.sizes.length > 0 && !selectedSize
+                    ? 'Select Size'
+                    : isAdded 
+                      ? '✓ Added to Cart' 
+                      : isInCart 
+                        ? '✓ In Cart' 
+                        : 'Add to Cart'}
               </Button>
             </div>
 

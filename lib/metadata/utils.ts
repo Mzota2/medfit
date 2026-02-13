@@ -97,7 +97,7 @@ export const generateHomeMetadata = async (
   const businessName = business?.name || SITE_CONFIG.defaultBusinessName || SITE_CONFIG.appTitle;
   const businessDescription = business?.description || SITE_CONFIG.appDescription;
   
-  const title = `${businessName} - Quality Products & Services Online`;
+  const title = `${businessName}`;
   const description = businessDescription;
   
   const logoUrl = business?.logo || SITE_CONFIG.brandImageUrl || '/logo.png';

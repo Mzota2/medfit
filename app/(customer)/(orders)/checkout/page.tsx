@@ -57,7 +57,7 @@ interface CheckoutFormData {
 export default function CheckoutPage() {
   const toast = useToast();
   const router = useRouter();
-  const { items, clearCart, setDirectPurchaseItem } = useCart();
+  const { items, clearCart, setDirectPurchaseItem, updateItemSize } = useCart();
   const { user } = useAuth();
   const { currentBusiness } = useApp();
 
@@ -430,6 +430,7 @@ export default function CheckoutPage() {
             unitPrice: effectivePrice,
             subtotal: effectivePrice * item.quantity,
             sku: item.product.sku,
+            selectedSize: item.selectedSize,
           };
         }),
         pricing: {
@@ -616,15 +617,49 @@ export default function CheckoutPage() {
                             </p>
                           )}
                         </div>
-                        <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-2">
-                          <span className="text-xs sm:text-sm text-text-secondary">Qty: {item.quantity}</span>
-                          {hasDiscount && (
-                            <span className="text-xs sm:text-sm text-success font-medium">
-                              Subtotal: {formatCurrency(effectivePrice * item.quantity, item.product.pricing.currency || 'MWK')}
-                            </span>
-                          )}
+                        <div className="flex flex-col gap-2 mt-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span className="text-xs sm:text-sm text-text-secondary">Qty: {item.quantity}</span>
+                            {hasDiscount && (
+                              <span className="text-xs sm:text-sm text-success font-medium">
+                                Subtotal: {formatCurrency(effectivePrice * item.quantity, item.product.pricing.currency || 'MWK')}
+                              </span>
+                            )}
+                          </div>
+                         
                         </div>
                       </div>
+                       {/* Size Selector */}
+                       {item.product.sizes && item.product.sizes.length > 0 && (
+                            <div>
+                              <label className="block text-xs sm:text-sm font-medium text-foreground mb-1">
+                                Size:
+                              </label>
+                              <select
+                                value={item.selectedSize || ''}
+                                onChange={(e) => {
+                                  if (item.product.id && e.target.value) {
+                                    updateItemSize(item.product.id, e.target.value);
+                                  }
+                                }}
+                                className="text-xs sm:text-sm px-2 py-1 border border-border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary w-full sm:w-auto"
+                              >
+                                <option value="">Select Size</option>
+                                {item.product.sizes.map((size) => (
+                                  <option
+                                    key={size.size}
+                                    value={size.size}
+                                    disabled={size.available <= 0}
+                                  >
+                                    {size.size} {size.available > 0 ? `(${size.available} left)` : '(Out of stock)'}
+                                  </option>
+                                ))}
+                              </select>
+                              {!item.selectedSize && (
+                                <p className="text-xs text-destructive mt-1">Please select a size</p>
+                              )}
+                            </div>
+                      )}
                     </div>
                   );
                 })}

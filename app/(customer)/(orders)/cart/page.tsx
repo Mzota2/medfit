@@ -177,7 +177,7 @@ const ProductSearchResults = ({
 };
 
 export default function CartPage() {
-  const { items = [], itemCount = 0, updateQuantity, removeItem, replaceItem } = useCart();
+  const { items = [], itemCount = 0, updateQuantity, removeItem, replaceItem, updateItemSize } = useCart();
   const [replacingItem, setReplacingItem] = useState<{id: string, name: string, categoryIds?: string[]} | null>(null);
   
   // Ensure items is always an array to prevent runtime errors
@@ -305,7 +305,41 @@ export default function CartPage() {
                           Subtotal: {formatCurrency(effectivePrice * item.quantity, product.pricing.currency)}
                         </p>
                       )}
+                      
                     </div>
+                    {/* Size Selector */}
+                    {product.sizes && product.sizes.length > 0 && (
+                        <div className="mt-2">
+                          <label className="block text-xs sm:text-sm font-medium text-foreground mb-1">
+                            Size:
+                          </label>
+                          <select
+                            value={item.selectedSize || ''}
+                            onChange={(e) => {
+                              if (product.id && e.target.value) {
+                                updateItemSize(product.id, e.target.value);
+                              }
+                            }}
+                            className="text-xs sm:text-sm px-2 py-1 border border-border rounded bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                          >
+                            <option value="">Select Size</option>
+                            {product.sizes.map((size) => (
+                              <option
+                                key={size.size}
+                                value={size.size}
+                                disabled={size.available <= 0}
+                              >
+                                {size.size} {size.available > 0 ? `(${size.available} left)` : '(Out of stock)'}
+                              </option>
+                            ))}
+                          </select>
+                          {item.selectedSize && (
+                            <span className="text-xs text-text-secondary mt-1 block">
+                              Selected: {item.selectedSize}
+                            </span>
+                          )}
+                        </div>
+                      )}
                   </div>
 
                   {/* Bottom Section: Quantity Controls and Remove Button */}
@@ -323,7 +357,12 @@ export default function CartPage() {
                       <span className="px-3 sm:px-4 py-2 min-w-[50px] sm:min-w-[60px] text-center text-sm sm:text-base text-foreground font-medium">{item.quantity}</span>
                       <button
                         onClick={() => product.id && handleQuantityChange(product.id, item.quantity + 1)}
-                        disabled={!product.id || item.quantity >= (product.inventory?.available ?? 0)}
+                        disabled={
+                          !product.id || 
+                          (product.sizes && product.sizes.length > 0 && item.selectedSize
+                            ? item.quantity >= (product.sizes.find(s => s.size === item.selectedSize)?.available ?? 0)
+                            : item.quantity >= (product.inventory?.available ?? 0))
+                        }
                         className="px-2 sm:px-3 py-2 hover:bg-background-secondary transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         aria-label="Increase quantity"
                       >

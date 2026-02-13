@@ -142,7 +142,12 @@ export default function CustomerOrderDetailPage() {
                         <p className="text-xs sm:text-sm text-text-secondary mb-2">SKU: {item.sku}</p>
                       )}
                       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
-                        <span className="text-xs sm:text-sm text-text-secondary">Quantity: {item.quantity}</span>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-xs sm:text-sm text-text-secondary">Quantity: {item.quantity}</span>
+                          {item.selectedSize && (
+                            <span className="text-xs sm:text-sm text-text-secondary">Size: {item.selectedSize}</span>
+                          )}
+                        </div>
                         <span className="font-semibold text-sm sm:text-base text-foreground">
                           {formatCurrency(item.subtotal, order.pricing.currency)}
                         </span>

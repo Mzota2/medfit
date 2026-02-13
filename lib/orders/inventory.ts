@@ -6,10 +6,18 @@ import { ItemStatus } from '@/types/item';
 interface OrderItemData {
   productId?: string;
   quantity?: number;
+  selectedSize?: string;
 }
 
 type InventoryData = {
   trackInventory?: boolean;
+  quantity?: number;
+  reserved?: number;
+  available?: number;
+};
+
+type ProductSizeData = {
+  size?: string;
   quantity?: number;
   reserved?: number;
   available?: number;
@@ -20,6 +28,7 @@ type ItemDocData = {
   name?: string;
   status?: ItemStatus;
   inventory?: InventoryData;
+  sizes?: ProductSizeData[];
   updatedAt?: unknown;
 };
 
@@ -68,6 +77,7 @@ export async function reserveInventory(orderId: string): Promise<void> {
     const itemData = asItemDocData(itemSnap.data());
     if (itemData.type !== 'product' || !itemData.inventory?.trackInventory) continue;
 
+    // Always update main inventory
     const currentReserved = itemData.inventory?.reserved || 0;
     const newReserved = currentReserved + item.quantity;
     const available = (itemData.inventory?.quantity || 0) - newReserved;
@@ -76,11 +86,39 @@ export async function reserveInventory(orderId: string): Promise<void> {
       throw new Error(`Insufficient stock for product: ${itemData.name}`);
     }
 
-    batch.update(itemRef, {
+    // Prepare update object
+    const updateData: Record<string, unknown> = {
       'inventory.reserved': newReserved,
       'inventory.available': available,
       updatedAt: serverTimestamp()
-    });
+    };
+
+    // If product has sizes and a size is selected, update size inventory
+    if (item.selectedSize && itemData.sizes && itemData.sizes.length > 0) {
+      const sizeIndex = itemData.sizes.findIndex(s => s.size === item.selectedSize);
+      if (sizeIndex >= 0) {
+        const size = itemData.sizes[sizeIndex];
+        const currentSizeReserved = size.reserved || 0;
+        const newSizeReserved = currentSizeReserved + item.quantity;
+        const sizeAvailable = (size.quantity || 0) - newSizeReserved;
+
+        if (sizeAvailable < 0) {
+          throw new Error(`Insufficient stock for size ${item.selectedSize} of product: ${itemData.name}`);
+        }
+
+        // Update size inventory
+        const updatedSizes = [...itemData.sizes];
+        updatedSizes[sizeIndex] = {
+          ...size,
+          reserved: newSizeReserved,
+          available: sizeAvailable,
+        };
+
+        updateData.sizes = updatedSizes;
+      }
+    }
+
+    batch.update(itemRef, updateData);
   }
 
   await batch.commit();
@@ -124,15 +162,40 @@ export async function releaseInventory(orderId: string): Promise<void> {
     const itemData = asItemDocData(itemSnap.data());
     if (itemData.type !== 'product' || !itemData.inventory?.trackInventory) continue;
 
+    // Always update main inventory
     const currentReserved = itemData.inventory?.reserved || 0;
     const newReserved = Math.max(0, currentReserved - item.quantity);
     const available = (itemData.inventory?.quantity || 0) - newReserved;
 
-    batch.update(itemRef, {
+    // Prepare update object
+    const updateData: Record<string, unknown> = {
       'inventory.reserved': newReserved,
       'inventory.available': available,
       updatedAt: serverTimestamp()
-    });
+    };
+
+    // If product has sizes and a size is selected, update size inventory
+    if (item.selectedSize && itemData.sizes && itemData.sizes.length > 0) {
+      const sizeIndex = itemData.sizes.findIndex(s => s.size === item.selectedSize);
+      if (sizeIndex >= 0) {
+        const size = itemData.sizes[sizeIndex];
+        const currentSizeReserved = size.reserved || 0;
+        const newSizeReserved = Math.max(0, currentSizeReserved - item.quantity);
+        const sizeAvailable = (size.quantity || 0) - newSizeReserved;
+
+        // Update size inventory
+        const updatedSizes = [...itemData.sizes];
+        updatedSizes[sizeIndex] = {
+          ...size,
+          reserved: newSizeReserved,
+          available: sizeAvailable,
+        };
+
+        updateData.sizes = updatedSizes;
+      }
+    }
+
+    batch.update(itemRef, updateData);
   }
 
   // Mark order as having released inventory
@@ -221,6 +284,30 @@ export const adjustInventoryForPaidOrder = async (orderId: string): Promise<void
         currentStatus: itemData.status
       });
 
+      // If product has sizes and a size is selected, update size inventory
+      let updatedSizes = itemData.sizes;
+      if (orderItem.selectedSize && itemData.sizes && itemData.sizes.length > 0) {
+        const sizeIndex = itemData.sizes.findIndex((s: ProductSizeData) => s.size === orderItem.selectedSize);
+        if (sizeIndex >= 0) {
+          const size = itemData.sizes[sizeIndex];
+          const currentSizeQuantity = typeof size.quantity === 'number' ? size.quantity : 0;
+          const currentSizeReserved = typeof size.reserved === 'number' ? size.reserved : 0;
+          const orderedQty = orderItem.quantity;
+
+          const newSizeQuantity = Math.max(0, currentSizeQuantity - orderedQty);
+          const newSizeReserved = Math.max(0, currentSizeReserved - orderedQty);
+          const sizeAvailable = Math.max(0, newSizeQuantity - newSizeReserved);
+
+          updatedSizes = [...itemData.sizes];
+          updatedSizes[sizeIndex] = {
+            ...size,
+            quantity: newSizeQuantity,
+            reserved: newSizeReserved,
+            available: sizeAvailable,
+          };
+        }
+      }
+
       // Prepare inventory updates
       const updates: Record<string, unknown> = {
         inventory: {
@@ -228,10 +315,13 @@ export const adjustInventoryForPaidOrder = async (orderId: string): Promise<void
           quantity: newQuantity,
           reserved: newReserved,
           available: available, // Explicitly set available to ensure consistency
-          updatedAt: serverTimestamp()
         },
         updatedAt: serverTimestamp()
       };
+
+      if (updatedSizes) {
+        updates.sizes = updatedSizes;
+      }
       
       // If this is a Firestore document, we need to use the serverTimestamp
       if (

@@ -8,12 +8,12 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { useApp } from '@/contexts/AppContext';
 import { useProduct, useUpdateProduct, useCategories } from '@/hooks';
-import { Item, ItemStatus, ItemImage } from '@/types/item';
+import { Item, ItemStatus, ItemImage, ProductSize } from '@/types/item';
 import { Button, Input, Textarea, Loading } from '@/components/ui';
 import { uploadImage } from '@/lib/cloudinary/utils';
 import { isCloudinaryConfigured } from '@/lib/cloudinary/config';
 import { OptimizedImage } from '@/components/ui/OptimizedImage';
-import { Upload, X } from 'lucide-react';
+import { Plus, Upload, X } from 'lucide-react';
 import Link from 'next/link';
 import {IMAGE_VARIANTS } from '@/lib/images/variants';
 import { ImageUploadWithCrop } from '@/components/admin/ImageUploadWithCrop';
@@ -62,6 +62,7 @@ export default function EditProductPage() {
     tags: [] as string[],
     specifications: {} as Record<string, string>,
     isReturnable: true, // Default to true
+    sizes: [] as ProductSize[],
   });
 
   const [imageFiles, setImageFiles] = useState<File[]>([]);
@@ -125,6 +126,7 @@ export default function EditProductPage() {
         tags: product.tags || [],
         specifications: product.specifications || {},
         isReturnable: product.isReturnable ?? true,
+        sizes: product.sizes || [],
       });
       setSlugManuallyEdited(!!product.slug); // If slug exists, consider it manually edited
       setInitialLoad(false);
@@ -186,6 +188,27 @@ export default function EditProductPage() {
       newErrors.categories = 'At least one category is required';
     }
 
+    // Validate sizes if they exist
+    if (formData.sizes && formData.sizes.length > 0) {
+      const totalSizeQuantity = formData.sizes.reduce((sum, s) => sum + s.quantity, 0);
+      if (totalSizeQuantity !== formData.inventory.quantity) {
+        newErrors.sizes = `Total size quantities (${totalSizeQuantity}) must match inventory quantity (${formData.inventory.quantity})`;
+      }
+      
+      // Check for duplicate sizes
+      const sizeNames = formData.sizes.map(s => s.size.trim().toUpperCase());
+      const uniqueSizes = new Set(sizeNames);
+      if (sizeNames.length !== uniqueSizes.size) {
+        newErrors.sizes = 'Duplicate sizes are not allowed';
+      }
+
+      // Check for empty size names
+      const emptySizes = formData.sizes.some(s => !s.size.trim());
+      if (emptySizes) {
+        newErrors.sizes = 'All sizes must have a name';
+      }
+    }
+
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
@@ -217,6 +240,7 @@ export default function EditProductPage() {
         tags: formData.tags,
         specifications: formData.specifications,
         isReturnable: formData.isReturnable,
+        sizes: formData.sizes,
       };
 
       await updateProduct.mutateAsync({
@@ -581,6 +605,110 @@ export default function EditProductPage() {
                 </>
               )}
             </div>
+            {/* Size Management - Only show if tracking inventory */}
+            {formData.inventory.trackInventory && (
+              <div className="mt-6">
+                <h3 className="text-lg font-semibold text-foreground mb-3">Size Management (Optional - for clothes/products with sizes)</h3>
+                <p className="text-xs text-text-secondary mb-4">
+                  Add sizes to track inventory per size. The total quantity should match the sum of all size quantities.
+                </p>
+                
+                <div className="space-y-3 mb-4">
+                  {formData.sizes.map((size, index) => {
+                    const sizeTotal = size.quantity;
+                    const sizeAvailable = size.quantity - size.reserved;
+                    return (
+                      <div key={index} className="flex items-center gap-3 p-3 bg-background-secondary rounded-lg">
+                        <Input
+                          label="Size"
+                          value={size.size}
+                          onChange={(e) => {
+                            const newSizes = [...formData.sizes];
+                            newSizes[index].size = e.target.value;
+                            setFormData((prev) => ({ ...prev, sizes: newSizes }));
+                          }}
+                          placeholder="S, M, L, XL, etc."
+                          className="flex-1"
+                        />
+                        <Input
+                          label="Quantity"
+                          type="number"
+                          min="0"
+                          value={size.quantity}
+                          onChange={(e) => {
+                            const newSizes = [...formData.sizes];
+                            const qty = parseInt(e.target.value) || 0;
+                            newSizes[index].quantity = qty;
+                            newSizes[index].available = qty - newSizes[index].reserved;
+                            setFormData((prev) => ({ ...prev, sizes: newSizes }));
+                          }}
+                          placeholder="0"
+                          className="w-32"
+                        />
+                        <div className="w-32">
+                          <label className="block text-xs text-text-secondary mb-1">Available</label>
+                          <div className="px-3 py-2 bg-background rounded border border-border text-sm text-foreground">
+                            {sizeAvailable}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newSizes = formData.sizes.filter((_, i) => i !== index);
+                            setFormData((prev) => ({ ...prev, sizes: newSizes }));
+                          }}
+                          className="p-2 text-destructive hover:bg-destructive/10 rounded"
+                        >
+                          <X className="w-5 h-5" />
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setFormData((prev) => ({
+                      ...prev,
+                      sizes: [
+                        ...prev.sizes,
+                        { size: '', quantity: 0, reserved: 0, available: 0 },
+                      ],
+                    }));
+                  }}
+                  className="mb-4"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Add Size
+                </Button>
+
+                {/* Validation: Show total from sizes vs inventory quantity */}
+                {formData.sizes.length > 0 && (
+                  <div className="mt-4 p-3 bg-background-secondary rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-foreground">Total from sizes:</span>
+                      <span className="text-sm font-bold text-foreground">
+                        {formData.sizes.reduce((sum, s) => sum + s.quantity, 0)}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-foreground">Inventory quantity:</span>
+                      <span className="text-sm font-bold text-foreground">{formData.inventory.quantity}</span>
+                    </div>
+                    {formData.sizes.reduce((sum, s) => sum + s.quantity, 0) !== formData.inventory.quantity && (
+                      <p className="text-xs text-destructive mt-2">
+                        ⚠️ Total size quantities ({formData.sizes.reduce((sum, s) => sum + s.quantity, 0)}) should match inventory quantity ({formData.inventory.quantity})
+                      </p>
+                    )}
+                    {formData.sizes.reduce((sum, s) => sum + s.quantity, 0) === formData.inventory.quantity && formData.sizes.length > 0 && (
+                      <p className="text-xs text-success mt-2">✓ Size quantities match inventory quantity</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Return Policy */}

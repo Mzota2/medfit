@@ -324,6 +324,7 @@ export default function ProfilePageClient() {
                         <div key={index} className="flex flex-col sm:flex-row sm:justify-between gap-1 sm:gap-2 text-xs sm:text-sm mb-2">
                           <span className="text-foreground wrap-break-word">
                             {item.productName} x {item.quantity}
+                            {item.selectedSize && ` (Size: ${item.selectedSize})`}
                           </span>
                           <span className="text-foreground font-medium sm:font-normal">
                             {formatCurrency(item.subtotal, order.pricing.currency)}

@@ -39,6 +39,7 @@ export interface OrderItem {
   unitPrice: number; // Price at time of order (snapshot)
   subtotal: number; // quantity * unitPrice
   sku?: string;
+  selectedSize?: string; // Selected size for products with sizes
 }
 
 /**

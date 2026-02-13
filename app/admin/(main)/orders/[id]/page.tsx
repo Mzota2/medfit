@@ -255,7 +255,12 @@ export default function AdminOrderDetailPage() {
                         <p className="text-sm text-text-secondary mb-2">SKU: {item.sku}</p>
                       )}
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-text-secondary">Quantity: {item.quantity}</span>
+                        <div className="flex flex-col gap-1">
+                          <span className="text-sm text-text-secondary">Quantity: {item.quantity}</span>
+                          {item.selectedSize && (
+                            <span className="text-sm text-text-secondary">Size: {item.selectedSize}</span>
+                          )}
+                        </div>
                         <span className="font-semibold text-foreground">
                           {formatCurrency(item.subtotal, order.pricing.currency)}
                         </span>

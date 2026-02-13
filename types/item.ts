@@ -46,6 +46,16 @@ export interface ItemInventory {
 }
 
 /**
+ * Product size with inventory tracking (for clothes/products with sizes)
+ */
+export interface ProductSize {
+  size: string; // e.g., "S", "M", "L", "XL", "XXL", "32", "34", etc.
+  quantity: number; // Current stock for this size
+  reserved: number; // Reserved in pending orders
+  available: number; // quantity - reserved
+}
+
+/**
  * Product variant (products only)
  */
 export interface ItemVariant {
@@ -110,6 +120,7 @@ export interface Item extends BaseDocument {
   sku?: string;
   inventory?: ItemInventory;
   variants?: ItemVariant[];
+  sizes?: ProductSize[]; // Size options with inventory (for clothes/products with sizes)
   weight?: number; // For shipping calculations
   isReturnable?: boolean; // Whether the product can be returned
  
@@ -154,6 +165,7 @@ export interface ItemSnapshot {
   sku?: string; // Products only
   variantId?: string; // Products only
   variantName?: string; // Products only
+  selectedSize?: string; // Products only - selected size
   quantity: number; // For products
   duration?: number; // For services (in minutes)
 }
